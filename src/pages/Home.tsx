@@ -1,8 +1,10 @@
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { FeatureCard } from '@/components/FeatureCard';
-import { Music, ArrowRight, Sparkles } from 'lucide-react';
+import { Music, ArrowRight, Sparkles, Heart, Brain } from 'lucide-react';
 import { Scene3D } from '@/components/Scene3D';
+import { Card, CardContent } from '@/components/ui/card';
+import logo from '@/assets/logo.png';
 
 const Home = () => {
   const navigate = useNavigate();
@@ -17,10 +19,19 @@ const Home = () => {
         
         <div className="container max-w-6xl mx-auto relative z-10">
           <div className="text-center animate-fade-in-up">
+            {/* Logo */}
+            <div className="mb-8 flex justify-center">
+              <img 
+                src={logo} 
+                alt="Melody Matrix Logo" 
+                className="h-32 sm:h-40 lg:h-48 w-auto animate-scale-in"
+              />
+            </div>
+
             <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full bg-card border border-border shadow-md">
               <Sparkles className="h-5 w-5 text-primary animate-pulse-glow" />
               <span className="text-sm font-light tracking-wide bg-gradient-primary bg-clip-text text-transparent">
-                AI-Powered Music Therapy
+                AI-Powered Music Therapy for Mental Wellness
               </span>
             </div>
             
@@ -30,10 +41,19 @@ const Home = () => {
               </span>
             </h1>
             
-            <p className="text-xl sm:text-2xl text-muted-foreground font-light mb-8 max-w-3xl mx-auto leading-relaxed tracking-wide">
-              Experience personalized AI-generated music to support your emotional well-being. 
-              Reduce stress, improve mood, and enhance focus through scientifically designed soundscapes.
+            <p className="text-xl sm:text-2xl text-muted-foreground font-light mb-6 max-w-3xl mx-auto leading-relaxed tracking-wide">
+              Welcome to Melody Matrix, where AI meets mental wellness through personalized music therapy. 
+              Our platform creates custom soundscapes designed to help you manage stress, anxiety, and emotional challenges.
             </p>
+
+            <Card className="max-w-4xl mx-auto mb-8 border-l-4 border-primary bg-card/50 backdrop-blur">
+              <CardContent className="p-6">
+                <p className="text-lg text-muted-foreground font-light italic">
+                  "Music can heal the wounds which medicine cannot touch."
+                </p>
+                <p className="text-sm text-muted-foreground mt-2">— Debasish Mridha, MD</p>
+              </CardContent>
+            </Card>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
               <Button
@@ -86,6 +106,141 @@ const Home = () => {
               description="Reduce stress, improve mood, enhance focus, and promote relaxation through scientifically designed musical experiences."
             />
           </div>
+        </div>
+      </section>
+
+      {/* Science-Backed Benefits */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-12 animate-fade-in">
+            <Brain className="h-16 w-16 text-secondary mx-auto mb-6" />
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">
+              The Science Behind Music Therapy
+            </h2>
+            <p className="text-lg text-muted-foreground font-light max-w-3xl mx-auto">
+              Music therapy is a well-established clinical intervention that uses music to address 
+              physical, emotional, cognitive, and social needs.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 animate-fade-in-up">
+            <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">🧘</div>
+                <h3 className="text-xl font-bold mb-3 text-foreground">Reduce Stress & Anxiety</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Music lowers cortisol levels and activates the parasympathetic nervous system, 
+                  promoting deep relaxation and calmness.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">😊</div>
+                <h3 className="text-xl font-bold mb-3 text-foreground">Improve Mood</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Listening to music increases dopamine and serotonin production, naturally elevating mood and emotional well-being.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">🎯</div>
+                <h3 className="text-xl font-bold mb-3 text-foreground">Enhance Focus</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Specific rhythms and tempos can improve concentration, cognitive performance, and productivity.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
+              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
+              <CardContent className="p-8">
+                <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">😴</div>
+                <h3 className="text-xl font-bold mb-3 text-foreground">Better Sleep</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  Calming music helps regulate circadian rhythms and promotes deeper, more restorative sleep quality.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="container max-w-6xl mx-auto">
+          <div className="text-center mb-12 animate-fade-in">
+            <Music className="h-16 w-16 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">
+              How Our AI Music Generation Works
+            </h2>
+            <p className="text-lg text-muted-foreground font-light max-w-3xl mx-auto">
+              Our platform uses advanced AI models trained on millions of musical compositions to create 
+              unique soundscapes tailored to your emotional state.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-6 animate-fade-in-up">
+            {[
+              {
+                step: '1',
+                title: 'Assessment',
+                description: 'Understanding your current emotional state through our questionnaire',
+              },
+              {
+                step: '2',
+                title: 'Analysis',
+                description: 'Processing your responses to determine the most beneficial musical elements',
+              },
+              {
+                step: '3',
+                title: 'Generation',
+                description: 'Creating a unique musical composition optimized for your needs',
+              },
+              {
+                step: '4',
+                title: 'Delivery',
+                description: 'Providing you with a personalized audio experience you can listen to anytime',
+              },
+            ].map((item) => (
+              <Card key={item.step} className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
+                <CardContent className="p-6">
+                  <div className="w-16 h-16 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
+                    {item.step}
+                  </div>
+                  <h3 className="text-lg font-bold mb-2 text-foreground">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Mission Statement */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="container max-w-4xl mx-auto animate-fade-in">
+          <div className="text-center mb-12">
+            <Heart className="h-16 w-16 text-primary mx-auto mb-6" />
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-6 text-foreground tracking-tight">Our Mission</h2>
+          </div>
+          
+          <Card className="border-2 border-primary/20 shadow-2xl">
+            <CardContent className="p-10">
+              <p className="text-lg leading-relaxed text-muted-foreground font-light mb-6">
+                Melody Matrix was created from a passion for both music and mental health awareness. 
+                Our mission is to provide accessible, personalized music therapy experiences to help 
+                individuals manage stress, anxiety, and emotional well-being through the power of 
+                AI-generated music.
+              </p>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

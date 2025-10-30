@@ -12,6 +12,7 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Loader2, Home, RefreshCw } from 'lucide-react';
 import { generateMusic } from '@/services/beatoven';
+import { buildTherapeuticPrompt } from '@/lib/promptBuilder';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { FloatingParticles } from '@/components/FloatingParticles';
@@ -58,13 +59,43 @@ const instruments = [
   { id: 'synth' as Instrument, emoji: '🎹', name: 'Synthesizer', description: 'Modern and ambient' },
 ];
 
-const assessmentQuestions = [
-  'Do you feel sad, hopeless, helpless, or worthless?',
-  'Do you feel guilty or blame yourself for things in your life?',
-  'Have you found it difficult to engage in work, hobbies, or daily activities?',
-  'Have you been experiencing trouble sleeping?',
-  'Do you feel tense or worried about minor matters?',
-];
+const questionBank: Record<Issue, string[]> = {
+  anxiety: [
+    'How strongly do you feel nervous, anxious, or on edge?',
+    'How much trouble do you have stopping or controlling your worries?',
+    'How much do you worry about various things?',
+    'How difficult is it for you to relax?',
+    'How strongly do you feel afraid, as if something awful might happen?',
+  ],
+  depression: [
+    'Do you feel sad, hopeless, helpless, or worthless?',
+    'Do you feel guilty or blame yourself for things in your life?',
+    'Have you found it difficult to engage in work, hobbies, or daily activities?',
+    'Have you been experiencing trouble sleeping?',
+    'Do you feel tense, worried, or anxious about things, even minor matters?',
+  ],
+  relationship: [
+    'How supported do you feel by important people in your life?',
+    'How often do you experience conflict or tension in your relationships?',
+    'How valued or respected do you feel in your relationships?',
+    'How comfortable do you feel communicating openly and honestly?',
+    'How much distress do your relationship challenges cause you?',
+  ],
+  stress: [
+    'How overwhelmed do you feel by your responsibilities or workload?',
+    'How difficult is it for you to manage your time and prioritize tasks effectively?',
+    'How much has stress affected your physical or mental health?',
+    'How difficult is it for you to maintain a work-life balance?',
+    'How much distress or frustration does your current level of stress cause you?',
+  ],
+  sleep: [
+    'How much difficulty do you have falling asleep?',
+    'How often do you wake up during the night?',
+    'How refreshed or rested do you feel when you wake up?',
+    'How much do your sleep problems interfere with your daily functioning?',
+    'How distressed or frustrated are you by your sleep problems?',
+  ],
+};
 
 const Assessment = () => {
   const navigate = useNavigate();
@@ -91,6 +122,14 @@ const Assessment = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState('');
   const [generationProgress, setGenerationProgress] = useState(0);
+  const [promptPreview, setPromptPreview] = useState('');
+  const [promptSummary, setPromptSummary] = useState<string[]>([]);
+  const [promptMeta, setPromptMeta] = useState<{ issueTitle: string; instrumentLabel: string }>({
+    issueTitle: '',
+    instrumentLabel: '',
+  });
+  const activeQuestions =
+    (selectedIssue ? questionBank[selectedIssue] : null) ?? questionBank.anxiety;
 
   const handleGenerateMusic = async () => {
     if (!selectedIssue || !selectedInstrument) {
@@ -98,19 +137,28 @@ const Assessment = () => {
       return;
     }
 
+    const { prompt, promptSummary, issueTitle, instrumentLabel } = buildTherapeuticPrompt({
+      issue: selectedIssue,
+      instrument: selectedInstrument,
+      tempo,
+      intensityScores,
+      surveyQuestions: activeQuestions,
+    });
+
+    setPromptPreview(prompt);
+    setPromptSummary(promptSummary);
+    setPromptMeta({ issueTitle, instrumentLabel });
+
     setIsGenerating(true);
     setGenerationStatus('Initializing music generation...');
     setGenerationProgress(0);
 
     try {
-      const prompt = `Create therapeutic music for ${selectedIssue} with ${selectedInstrument} at ${tempo} BPM`;
-      
       const audioUrl = await generateMusic(
         {
           prompt,
           instrument: selectedInstrument,
           tempo,
-          duration: 180,
         },
         (status, progress) => {
           setGenerationStatus(status);
@@ -141,6 +189,9 @@ const Assessment = () => {
   const handleReset = () => {
     reset();
     setCurrentStep(1);
+    setPromptPreview('');
+    setPromptSummary([]);
+    setPromptMeta({ issueTitle: '', instrumentLabel: '' });
     toast.info('Assessment reset. Start fresh!');
   };
 
@@ -226,7 +277,7 @@ const Assessment = () => {
                 {scoreKeys.map((key, index) => (
                   <IntensitySlider
                     key={key}
-                    label={`${index + 1}. ${assessmentQuestions[index]}`}
+                    label={`${index + 1}. ${activeQuestions[index]}`}
                     value={intensityScores[key]}
                     onChange={(value) => setIntensityScore(key, value)}
                   />
@@ -381,6 +432,16 @@ const Assessment = () => {
                       <p>🎵 Creating your therapeutic music...</p>
                     </div>
                   </div>
+                  {promptPreview && (
+                    <div className="mt-6 text-left bg-background/70 border border-primary/20 rounded-xl p-4 shadow-inner">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-2">
+                        Session Blueprint
+                      </p>
+                      <p className="text-sm text-foreground/80 font-light leading-relaxed">
+                        {promptPreview}
+                      </p>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )}
@@ -403,6 +464,40 @@ const Assessment = () => {
             {generatedTrackUrl && (
               <div className="max-w-3xl mx-auto space-y-8 mb-12">
                 <MusicVisualizer3D />
+                {promptPreview && (
+                  <Card className="border-primary/40 bg-primary/5">
+                    <CardContent className="p-8 space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div>
+                          <p className="text-xs font-semibold uppercase tracking-tight text-primary mb-1">
+                            Personalized Session Summary
+                          </p>
+                          <h3 className="text-2xl font-display font-light text-foreground">
+                            {promptMeta.issueTitle} · {promptMeta.instrumentLabel} · {tempo} BPM
+                          </h3>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        {promptSummary.map((line) => (
+                          <div
+                            key={line}
+                            className="text-sm text-muted-foreground font-light bg-background/70 border border-primary/10 rounded-lg px-4 py-3"
+                          >
+                            {line}
+                          </div>
+                        ))}
+                      </div>
+                      <div className="bg-background/80 border border-primary/20 rounded-xl p-4 shadow-inner">
+                        <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-2">
+                          Full Prompt Sent to Composer
+                        </p>
+                        <p className="text-sm text-foreground/80 font-light leading-relaxed">
+                          {promptPreview}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
                 <AudioPlayer audioUrl={generatedTrackUrl} />
 
                 <Card>

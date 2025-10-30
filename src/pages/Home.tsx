@@ -269,7 +269,7 @@ const Home = () => {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate('/about')}
-                className="gap-2 px-8 py-6 text-lg border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10"
+                className="gap-2 px-8 py-6 text-lg bg-black text-white hover:bg-black/80 border border-black"
               >
                 Discover the Science
               </Button>

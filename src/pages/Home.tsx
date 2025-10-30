@@ -47,7 +47,7 @@ const Home = () => {
             </p>
 
             <Card className="max-w-4xl mx-auto mb-8 border-l-4 border-primary bg-card/50 backdrop-blur">
-              <CardContent className="p-6">
+            <CardContent className="p-6 sm:p-8">
                 <p className="text-lg text-muted-foreground font-light italic">
                   "Music can heal the wounds which medicine cannot touch."
                 </p>
@@ -55,11 +55,11 @@ const Home = () => {
               </CardContent>
             </Card>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center mb-12">
               <Button
                 size="lg"
                 onClick={() => navigate('/assessment')}
-                className="gap-2 px-8 py-6 text-lg bg-gradient-primary hover:opacity-90 transition-opacity shadow-lg"
+                className="w-full sm:w-auto gap-2 px-8 py-6 text-lg bg-gradient-primary hover:opacity-90 transition-opacity shadow-lg"
               >
                 Start Assessment
                 <ArrowRight className="h-5 w-5" />
@@ -68,7 +68,7 @@ const Home = () => {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate('/about')}
-                className="gap-2 px-8 py-6 text-lg"
+                className="w-full sm:w-auto gap-2 px-8 py-6 text-lg"
               >
                 Learn More
               </Button>
@@ -126,7 +126,7 @@ const Home = () => {
           <div className="grid md:grid-cols-2 gap-8 animate-fade-in-up">
             <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
-              <CardContent className="p-8">
+            <CardContent className="p-6 sm:p-8">
                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">🧘</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Reduce Stress & Anxiety</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -138,7 +138,7 @@ const Home = () => {
 
             <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
-              <CardContent className="p-8">
+            <CardContent className="p-6 sm:p-8">
                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">😊</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Improve Mood</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -149,7 +149,7 @@ const Home = () => {
 
             <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
-              <CardContent className="p-8">
+            <CardContent className="p-6 sm:p-8">
                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">🎯</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Enhance Focus</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -160,7 +160,7 @@ const Home = () => {
 
             <Card className="group hover:shadow-xl transition-all duration-300 border-border hover:-translate-y-1">
               <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-5 transition-opacity duration-300 rounded-lg" />
-              <CardContent className="p-8">
+            <CardContent className="p-6 sm:p-8">
                 <div className="text-5xl mb-4 group-hover:scale-110 transition-transform duration-300">😴</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Better Sleep</h3>
                 <p className="text-muted-foreground leading-relaxed">
@@ -210,7 +210,7 @@ const Home = () => {
               },
             ].map((item) => (
               <Card key={item.step} className="text-center hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <CardContent className="p-6">
+                <CardContent className="p-6 sm:p-8">
                   <div className="w-16 h-16 rounded-full bg-gradient-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto mb-4 shadow-lg">
                     {item.step}
                   </div>
@@ -232,7 +232,7 @@ const Home = () => {
           </div>
           
           <Card className="border-2 border-primary/20 shadow-2xl">
-            <CardContent className="p-10">
+            <CardContent className="p-6 sm:p-10">
               <p className="text-lg leading-relaxed text-muted-foreground font-light mb-6">
                 Melody Matrix was created from a passion for both music and mental health awareness. 
                 Our mission is to provide accessible, personalized music therapy experiences to help 
@@ -247,7 +247,7 @@ const Home = () => {
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="container max-w-4xl mx-auto">
-          <div className="bg-gradient-primary rounded-3xl p-12 text-center text-primary-foreground shadow-2xl animate-scale-in">
+          <div className="bg-gradient-primary rounded-3xl p-8 sm:p-12 text-center text-primary-foreground shadow-2xl animate-scale-in">
             <Music className="h-16 w-16 mx-auto mb-6" />
             <h2 className="text-3xl sm:text-4xl font-bold mb-4">
               Get Started with Melody Matrix
@@ -255,12 +255,12 @@ const Home = () => {
             <p className="text-xl mb-8 opacity-90 max-w-2xl mx-auto">
               Begin your musical journey to better mental wellness. Take our assessment and receive personalized AI-generated music.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
               <Button
                 size="lg"
                 variant="secondary"
                 onClick={() => navigate('/assessment')}
-                className="gap-2 px-8 py-6 text-lg bg-background text-foreground hover:bg-background/90"
+                className="w-full sm:w-auto gap-2 px-8 py-6 text-lg bg-background text-foreground hover:bg-background/90 whitespace-normal text-center"
               >
                 Begin Your Musical Journey
                 <ArrowRight className="h-5 w-5" />
@@ -269,7 +269,7 @@ const Home = () => {
                 size="lg"
                 variant="outline"
                 onClick={() => navigate('/about')}
-                className="gap-2 px-8 py-6 text-lg bg-black text-white hover:bg-black/80 border border-black"
+                className="w-full sm:w-auto gap-2 px-8 py-6 text-lg bg-black text-white hover:bg-black/80 border border-black"
               >
                 Discover the Science
               </Button>

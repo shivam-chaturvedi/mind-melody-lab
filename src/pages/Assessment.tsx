@@ -241,12 +241,12 @@ const Assessment = () => {
               ))}
             </div>
 
-            <div className="flex justify-end">
+            <div className="flex flex-col sm:flex-row gap-4 justify-end">
               <Button
                 size="lg"
                 onClick={nextStep}
                 disabled={!selectedIssue}
-                className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
+                className="w-full sm:w-auto gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
               >
                 Next: Assessment Questions
                 <ArrowRight className="h-5 w-5" />
@@ -285,12 +285,12 @@ const Assessment = () => {
               </CardContent>
             </Card>
 
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <Button
                 size="lg"
                 variant="outline"
                 onClick={prevStep}
-                className="gap-2"
+                className="w-full sm:w-auto gap-2"
               >
                 <ArrowLeft className="h-5 w-5" />
                 Back
@@ -298,7 +298,7 @@ const Assessment = () => {
               <Button
                 size="lg"
                 onClick={nextStep}
-                className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
+                className="w-full sm:w-auto gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
               >
                 Next: Customize Music
                 <ArrowRight className="h-5 w-5" />
@@ -323,7 +323,7 @@ const Assessment = () => {
               {/* Instruments */}
               <div>
                 <h3 className="text-xl font-display font-light mb-6 text-foreground">Instrument</h3>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                   {instruments.map((instrument) => (
                     <Card
                       key={instrument.id}
@@ -385,12 +385,12 @@ const Assessment = () => {
               </Card>
             </div>
 
-            <div className="flex justify-between">
+            <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <Button
                 size="lg"
                 variant="outline"
                 onClick={prevStep}
-                className="gap-2"
+                className="w-full sm:w-auto gap-2"
               >
                 <ArrowLeft className="h-5 w-5" />
                 Back
@@ -399,7 +399,7 @@ const Assessment = () => {
                 size="lg"
                 onClick={handleGenerateMusic}
                 disabled={!selectedInstrument || isGenerating}
-                className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity px-8"
+                className="w-full sm:w-auto gap-2 bg-gradient-primary hover:opacity-90 transition-opacity px-8"
               >
                 {isGenerating ? (
                   <>
@@ -525,12 +525,12 @@ const Assessment = () => {
               </div>
             )}
 
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-stretch sm:items-center">
               <Button
                 size="lg"
                 variant="outline"
                 onClick={() => navigate('/')}
-                className="gap-2"
+                className="w-full sm:w-auto gap-2"
               >
                 <Home className="h-5 w-5" />
                 Back to Home
@@ -538,7 +538,7 @@ const Assessment = () => {
               <Button
                 size="lg"
                 onClick={handleReset}
-                className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
+                className="w-full sm:w-auto gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
               >
                 <RefreshCw className="h-5 w-5" />
                 Generate Different Music

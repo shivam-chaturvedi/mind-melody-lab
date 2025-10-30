@@ -31,7 +31,7 @@ const About = () => {
           </div>
           
           <Card className="border-2 border-primary/20 shadow-xl">
-            <CardContent className="p-10">
+            <CardContent className="p-6 sm:p-10">
               <p className="text-lg leading-relaxed text-muted-foreground font-light mb-6">
                 Melody Matrix was created from a passion for both music and mental health awareness. 
                 Our mission is to provide accessible, personalized music therapy experiences to help 
@@ -63,7 +63,7 @@ const About = () => {
 
           <div className="grid md:grid-cols-2 gap-8 mb-12 animate-fade-in-up">
             <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="text-4xl mb-4">🧘</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Reduce Stress & Anxiety</h3>
                 <p className="text-muted-foreground">
@@ -74,7 +74,7 @@ const About = () => {
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="text-4xl mb-4">😊</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Improve Mood</h3>
                 <p className="text-muted-foreground">
@@ -84,7 +84,7 @@ const About = () => {
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="text-4xl mb-4">🎯</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Enhance Focus</h3>
                 <p className="text-muted-foreground">
@@ -94,7 +94,7 @@ const About = () => {
             </Card>
 
             <Card className="hover:shadow-lg transition-shadow">
-              <CardContent className="p-8">
+              <CardContent className="p-6 sm:p-8">
                 <div className="text-4xl mb-4">😴</div>
                 <h3 className="text-xl font-bold mb-3 text-foreground">Better Sleep</h3>
                 <p className="text-muted-foreground">
@@ -233,7 +233,7 @@ const About = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="container max-w-4xl mx-auto">
           <Card className="bg-gradient-primary text-primary-foreground shadow-2xl animate-scale-in">
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-8 sm:p-12 text-center">
               <h2 className="text-3xl sm:text-4xl font-bold mb-4">
                 Ready to Experience the Difference?
               </h2>
@@ -244,7 +244,7 @@ const About = () => {
                 size="lg"
                 variant="secondary"
                 onClick={() => navigate('/assessment')}
-                className="gap-2 px-8 py-6 text-lg bg-background text-foreground hover:bg-background/90"
+                className="w-full sm:w-auto gap-2 px-8 py-6 text-lg bg-background text-foreground hover:bg-background/90"
               >
                 Begin Assessment
                 <ArrowRight className="h-5 w-5" />

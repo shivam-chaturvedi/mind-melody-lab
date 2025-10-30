@@ -2,19 +2,21 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Mail, Phone, MapPin, Heart, Brain, Music } from 'lucide-react';
+import { FloatingParticles } from '@/components/FloatingParticles';
 
 const About = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-inter relative">
+      <FloatingParticles />
       {/* Hero */}
       <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 to-secondary/5">
         <div className="container max-w-6xl mx-auto text-center animate-fade-in-up">
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 text-foreground">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-display font-thin mb-6 text-foreground tracking-tight">
             About <span className="bg-gradient-primary bg-clip-text text-transparent">Melody Matrix</span>
           </h1>
-          <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
+          <p className="text-xl text-muted-foreground font-light max-w-3xl mx-auto">
             Combining the healing power of music with cutting-edge AI to support your mental wellness journey
           </p>
         </div>
@@ -25,20 +27,20 @@ const About = () => {
         <div className="container max-w-4xl mx-auto animate-fade-in">
           <div className="text-center mb-12">
             <Heart className="h-16 w-16 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl sm:text-4xl font-bold mb-6 text-foreground">Our Mission</h2>
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-6 text-foreground tracking-tight">Our Mission</h2>
           </div>
           
           <Card className="border-2 border-primary/20 shadow-xl">
             <CardContent className="p-10">
-              <p className="text-lg leading-relaxed text-muted-foreground mb-6">
+              <p className="text-lg leading-relaxed text-muted-foreground font-light mb-6">
                 Melody Matrix was created from a passion for both music and mental health awareness. 
                 Our mission is to provide accessible, personalized music therapy experiences to help 
                 individuals manage stress, anxiety, and emotional well-being through the power of 
                 AI-generated music.
               </p>
-              <blockquote className="border-l-4 border-primary pl-6 italic text-xl text-foreground">
+              <blockquote className="border-l-4 border-primary pl-6 italic text-xl text-foreground font-light">
                 "Music can heal the wounds which medicine cannot touch."
-                <footer className="text-sm text-muted-foreground mt-2">— Debasish Mridha, MD</footer>
+                <footer className="text-sm text-muted-foreground mt-2 font-light">— Debasish Mridha, MD</footer>
               </blockquote>
             </CardContent>
           </Card>
@@ -50,10 +52,10 @@ const About = () => {
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
             <Brain className="h-16 w-16 text-secondary mx-auto mb-6" />
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">
               The Science Behind Music Therapy
             </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground font-light max-w-3xl mx-auto">
               Music therapy is a well-established clinical intervention that uses music to address 
               physical, emotional, cognitive, and social needs.
             </p>
@@ -109,10 +111,10 @@ const About = () => {
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
             <Music className="h-16 w-16 text-primary mx-auto mb-6" />
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">
               How Our AI Music Generation Works
             </h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            <p className="text-lg text-muted-foreground font-light max-w-3xl mx-auto">
               Our platform uses advanced AI models trained on millions of musical compositions to create 
               unique soundscapes tailored to your emotional state.
             </p>
@@ -159,8 +161,8 @@ const About = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-12 animate-fade-in">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">Our Team</h2>
-            <p className="text-lg text-muted-foreground max-w-3xl mx-auto">
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">Our Team</h2>
+            <p className="text-lg text-muted-foreground font-light max-w-3xl mx-auto">
               Founded by a team of music therapists, AI researchers, and mental health professionals 
               dedicated to making therapeutic music accessible to everyone.
             </p>
@@ -187,8 +189,8 @@ const About = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="container max-w-4xl mx-auto animate-fade-in">
           <div className="text-center mb-12">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">Contact Us</h2>
-            <p className="text-lg text-muted-foreground">
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">Contact Us</h2>
+            <p className="text-lg text-muted-foreground font-light">
               We'd love to hear from you! Whether you have questions, feedback, or ideas for improvement.
             </p>
           </div>

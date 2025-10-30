@@ -6,7 +6,7 @@ interface IntensitySliderProps {
   onChange: (value: number) => void;
 }
 
-const labels = ['Very Low', 'Low', 'Moderate', 'High', 'Very High'];
+const labels = ['Not at all', 'Slightly', 'Moderately', 'Very Much', 'Extremely'];
 
 export const IntensitySlider = ({ label, value, onChange }: IntensitySliderProps) => {
   return (

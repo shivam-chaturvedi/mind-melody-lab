@@ -14,30 +14,57 @@ import { ArrowLeft, ArrowRight, Loader2, Home, RefreshCw } from 'lucide-react';
 import { generateMusic } from '@/services/beatoven';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+import { FloatingParticles } from '@/components/FloatingParticles';
+import { MusicVisualizer3D } from '@/components/MusicVisualizer3D';
 
 const issues = [
-  { id: 'anxiety' as Issue, emoji: '😟', title: 'Anxiety' },
-  { id: 'depression' as Issue, emoji: '😔', title: 'Depression' },
-  { id: 'relationship' as Issue, emoji: '💞', title: 'Relationship' },
-  { id: 'stress' as Issue, emoji: '😩', title: 'Stress' },
-  { id: 'sleep' as Issue, emoji: '😴', title: 'Sleep Issues' },
+  { 
+    id: 'anxiety' as Issue, 
+    emoji: '😰', 
+    title: 'Anxiety',
+    subtitle: 'For feelings of nervousness, worry, panic, or restlessness'
+  },
+  { 
+    id: 'depression' as Issue, 
+    emoji: '😔', 
+    title: 'Depression',
+    subtitle: 'For low mood, sadness, lack of motivation, hopelessness, or fatigue'
+  },
+  { 
+    id: 'relationship' as Issue, 
+    emoji: '👥', 
+    title: 'Relationship',
+    subtitle: 'For challenges in personal or professional relationships'
+  },
+  { 
+    id: 'stress' as Issue, 
+    emoji: '😫', 
+    title: 'Stress',
+    subtitle: 'For overwhelming pressure or difficulty coping'
+  },
+  { 
+    id: 'sleep' as Issue, 
+    emoji: '😴', 
+    title: 'Sleep Issues',
+    subtitle: 'For trouble falling/staying asleep or insomnia'
+  },
 ];
 
 const instruments = [
-  { id: 'piano' as Instrument, emoji: '🎹', name: 'Piano' },
-  { id: 'guitar' as Instrument, emoji: '🎸', name: 'Guitar' },
-  { id: 'violin' as Instrument, emoji: '🎻', name: 'Violin' },
-  { id: 'flute' as Instrument, emoji: '🎶', name: 'Flute' },
-  { id: 'synth' as Instrument, emoji: '🎧', name: 'Synth' },
+  { id: 'piano' as Instrument, emoji: '🎹', name: 'Piano', description: 'Calming and expressive' },
+  { id: 'guitar' as Instrument, emoji: '🎸', name: 'Guitar', description: 'Warm and soothing' },
+  { id: 'violin' as Instrument, emoji: '🎻', name: 'Violin', description: 'Emotional and uplifting' },
+  { id: 'flute' as Instrument, emoji: '🪈', name: 'Flute', description: 'Light and delicate' },
+  { id: 'synth' as Instrument, emoji: '🎹', name: 'Synthesizer', description: 'Modern and ambient' },
 ];
 
-const intensityLabels: Record<Issue, string[]> = {
-  anxiety: ['Tension', 'Worry', 'Restlessness', 'Physical Symptoms', 'Sleep Impact'],
-  depression: ['Low Mood', 'Energy Loss', 'Interest Loss', 'Hopelessness', 'Sleep Issues'],
-  relationship: ['Communication', 'Trust', 'Conflict', 'Intimacy', 'Satisfaction'],
-  stress: ['Overwhelm', 'Tension', 'Irritability', 'Focus', 'Physical Impact'],
-  sleep: ['Difficulty Falling Asleep', 'Staying Asleep', 'Early Waking', 'Fatigue', 'Mood Impact'],
-};
+const assessmentQuestions = [
+  'Do you feel sad, hopeless, helpless, or worthless?',
+  'Do you feel guilty or blame yourself for things in your life?',
+  'Have you found it difficult to engage in work, hobbies, or daily activities?',
+  'Have you been experiencing trouble sleeping?',
+  'Do you feel tense or worried about minor matters?',
+];
 
 const Assessment = () => {
   const navigate = useNavigate();
@@ -72,7 +99,7 @@ const Assessment = () => {
     }
 
     setIsGenerating(true);
-    setGenerationStatus('Initializing...');
+    setGenerationStatus('Initializing music generation...');
     setGenerationProgress(0);
 
     try {
@@ -96,10 +123,10 @@ const Assessment = () => {
       
       // Celebrate!
       confetti({
-        particleCount: 100,
-        spread: 70,
+        particleCount: 150,
+        spread: 100,
         origin: { y: 0.6 },
-        colors: ['#7C4DFF', '#FF4081'],
+        colors: ['#7C4DFF', '#FF4081', '#B388FF', '#FF80AB'],
       });
       
       toast.success('Your personalized music is ready! 🎵');
@@ -117,29 +144,49 @@ const Assessment = () => {
     toast.info('Assessment reset. Start fresh!');
   };
 
+  const handleSubmitFeedback = () => {
+    if (feedback.trim()) {
+      toast.success('Thank you for your feedback! 💜');
+    } else {
+      toast.error('Please share your thoughts before submitting');
+    }
+  };
+
   const renderStep = () => {
     switch (currentStep) {
       case 1:
         return (
           <div className="animate-fade-in">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
-                What brings you here today?
+              <h2 className="text-3xl sm:text-4xl font-display font-thin mb-6 text-foreground tracking-tight">
+                Please select the mental wellness area you'd like to address.
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Select the area where you'd like support. Our AI will tailor the music to your specific needs.
+              <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">
+                Choose the focus area that resonates most with your current needs
               </p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
               {issues.map((issue) => (
-                <IssueCard
+                <Card
                   key={issue.id}
-                  emoji={issue.emoji}
-                  title={issue.title}
-                  isSelected={selectedIssue === issue.id}
                   onClick={() => setSelectedIssue(issue.id)}
-                />
+                  className={`cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-xl ${
+                    selectedIssue === issue.id
+                      ? 'ring-4 ring-primary shadow-xl bg-gradient-to-br from-primary/5 to-secondary/5'
+                      : 'hover:ring-2 hover:ring-primary/50 bg-card'
+                  }`}
+                >
+                  <CardContent className="p-8 text-center">
+                    <div className={`text-7xl mb-4 transition-transform duration-300 ${
+                      selectedIssue === issue.id ? 'scale-125' : ''
+                    }`}>
+                      {issue.emoji}
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">{issue.title}</h3>
+                    <p className="text-sm text-muted-foreground font-light">{issue.subtitle}</p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
 
@@ -150,7 +197,7 @@ const Assessment = () => {
                 disabled={!selectedIssue}
                 className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
               >
-                Next: Assess Intensity
+                Next: Assessment Questions
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
@@ -158,17 +205,19 @@ const Assessment = () => {
         );
 
       case 2:
-        const labels = selectedIssue ? intensityLabels[selectedIssue] : [];
         const scoreKeys = Object.keys(intensityScores) as Array<keyof typeof intensityScores>;
         
         return (
           <div className="animate-fade-in">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
-                How intense are these feelings?
+              <h2 className="text-3xl sm:text-4xl font-display font-thin mb-6 text-foreground tracking-tight">
+                Mental Wellness Assessment
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Rate each aspect from 0 (very low) to 4 (very high). This helps us create music that resonates with your current state.
+              <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto mb-4">
+                Please answer the following questions about your experience with <span className="font-semibold text-foreground">{selectedIssue}</span>.
+              </p>
+              <p className="text-md text-muted-foreground font-light max-w-2xl mx-auto">
+                Your responses help our AI create music tailored to your needs.
               </p>
             </div>
 
@@ -177,7 +226,7 @@ const Assessment = () => {
                 {scoreKeys.map((key, index) => (
                   <IntensitySlider
                     key={key}
-                    label={labels[index] || key.charAt(0).toUpperCase() + key.slice(1)}
+                    label={`${index + 1}. ${assessmentQuestions[index]}`}
                     value={intensityScores[key]}
                     onChange={(value) => setIntensityScore(key, value)}
                   />
@@ -200,7 +249,7 @@ const Assessment = () => {
                 onClick={nextStep}
                 className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
               >
-                Next: Choose Sound
+                Next: Customize Music
                 <ArrowRight className="h-5 w-5" />
               </Button>
             </div>
@@ -211,27 +260,39 @@ const Assessment = () => {
         return (
           <div className="animate-fade-in">
             <div className="text-center mb-12">
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
-                Select your preferred sound
+              <h2 className="text-3xl sm:text-4xl font-display font-thin mb-6 text-foreground tracking-tight">
+                Select your preferred instrument and tempo
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Choose the instrument and tempo that feels right for you.
+              <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">
+                Choose the sound and pace that feels right for your therapeutic music
               </p>
             </div>
 
-            <div className="max-w-3xl mx-auto space-y-12 mb-12">
+            <div className="max-w-4xl mx-auto space-y-12 mb-12">
               {/* Instruments */}
               <div>
-                <h3 className="text-xl font-semibold mb-6 text-foreground">Instrument</h3>
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-4">
+                <h3 className="text-xl font-display font-light mb-6 text-foreground">Instrument</h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   {instruments.map((instrument) => (
-                    <InstrumentCard
+                    <Card
                       key={instrument.id}
-                      emoji={instrument.emoji}
-                      name={instrument.name}
-                      isSelected={selectedInstrument === instrument.id}
                       onClick={() => setSelectedInstrument(instrument.id)}
-                    />
+                      className={`cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:shadow-lg ${
+                        selectedInstrument === instrument.id
+                          ? 'ring-4 ring-secondary shadow-xl bg-gradient-to-br from-secondary/10 to-primary/10'
+                          : 'hover:ring-2 hover:ring-secondary/50 bg-card'
+                      }`}
+                    >
+                      <CardContent className="p-6 text-center">
+                        <div className={`text-5xl mb-3 transition-transform duration-300 ${
+                          selectedInstrument === instrument.id ? 'scale-110' : ''
+                        }`}>
+                          {instrument.emoji}
+                        </div>
+                        <p className="text-sm font-medium text-foreground mb-1">{instrument.name}</p>
+                        <p className="text-xs text-muted-foreground font-light">{instrument.description}</p>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               </div>
@@ -241,7 +302,7 @@ const Assessment = () => {
                 <CardContent className="p-8">
                   <div className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <h3 className="text-xl font-semibold text-foreground">Tempo</h3>
+                      <h3 className="text-xl font-display font-light text-foreground">Tempo</h3>
                       <span className="text-lg font-bold px-4 py-2 rounded-full bg-gradient-primary text-primary-foreground">
                         {tempo} BPM
                       </span>
@@ -254,9 +315,19 @@ const Assessment = () => {
                       step={5}
                       className="cursor-pointer"
                     />
-                    <div className="flex justify-between text-sm text-muted-foreground">
-                      <span>Slow & Calm (60)</span>
-                      <span>Energetic (180)</span>
+                    <div className="flex justify-between text-sm text-muted-foreground font-light">
+                      <div className="text-left">
+                        <p className="font-medium">60-80 BPM</p>
+                        <p className="text-xs">Relaxation/Sleep</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="font-medium">80-120 BPM</p>
+                        <p className="text-xs">Stress Relief/Balance</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">120-180 BPM</p>
+                        <p className="text-xs">Focus/Motivation</p>
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -297,12 +368,18 @@ const Assessment = () => {
             {isGenerating && (
               <Card className="mt-8 border-primary/50 bg-primary/5 animate-pulse-glow">
                 <CardContent className="p-6 text-center">
-                  <p className="text-lg font-medium text-foreground mb-2">{generationStatus}</p>
-                  <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-primary transition-all duration-500"
-                      style={{ width: `${generationProgress}%` }}
-                    />
+                  <p className="text-lg font-light text-foreground mb-4">{generationStatus}</p>
+                  <div className="space-y-2">
+                    <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-primary transition-all duration-500"
+                        style={{ width: `${generationProgress}%` }}
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground font-light">
+                      <p>🎼 Analyzing your mental wellness assessment...</p>
+                      <p>🎵 Creating your therapeutic music...</p>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -315,29 +392,39 @@ const Assessment = () => {
           <div className="animate-fade-in">
             <div className="text-center mb-12">
               <div className="text-6xl mb-4">🎉</div>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
-                Your Music is Ready!
+              <h2 className="text-3xl sm:text-4xl font-display font-thin mb-6 text-foreground tracking-tight">
+                Your Therapeutic Music is Ready!
               </h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Experience your personalized therapeutic soundscape. Listen, relax, and let the music support your well-being.
+              <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">
+                Based on your assessment, we've created a unique musical experience designed to support your mental wellness journey.
               </p>
             </div>
 
             {generatedTrackUrl && (
               <div className="max-w-3xl mx-auto space-y-8 mb-12">
+                <MusicVisualizer3D />
                 <AudioPlayer audioUrl={generatedTrackUrl} />
 
                 <Card>
                   <CardContent className="p-8">
-                    <label className="block text-lg font-semibold mb-4 text-foreground">
-                      How does this music make you feel?
+                    <label className="block text-lg font-display font-light mb-4 text-foreground">
+                      How did this music make you feel?
                     </label>
+                    <p className="text-sm text-muted-foreground font-light mb-4">
+                      Did it help you relax? Match your emotional state? What would you change?
+                    </p>
                     <Textarea
                       value={feedback}
                       onChange={(e) => setFeedback(e.target.value)}
                       placeholder="Share your thoughts and impressions..."
-                      className="min-h-32 resize-none"
+                      className="min-h-32 resize-none font-light"
                     />
+                    <Button
+                      onClick={handleSubmitFeedback}
+                      className="mt-4 bg-gradient-primary hover:opacity-90"
+                    >
+                      Submit Feedback
+                    </Button>
                   </CardContent>
                 </Card>
               </div>
@@ -351,7 +438,7 @@ const Assessment = () => {
                 className="gap-2"
               >
                 <Home className="h-5 w-5" />
-                Return Home
+                Back to Home
               </Button>
               <Button
                 size="lg"
@@ -359,7 +446,7 @@ const Assessment = () => {
                 className="gap-2 bg-gradient-primary hover:opacity-90 transition-opacity"
               >
                 <RefreshCw className="h-5 w-5" />
-                Generate New Music
+                Generate Different Music
               </Button>
             </div>
           </div>
@@ -371,14 +458,17 @@ const Assessment = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background py-12 px-4 sm:px-6 lg:px-8 font-inter relative">
+      <FloatingParticles />
       <div className="container max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-2 bg-gradient-primary bg-clip-text text-transparent">
-            Melody Matrix
+          <h1 className="text-4xl font-display font-thin mb-2 bg-gradient-primary bg-clip-text text-transparent tracking-tight">
+            Mental Wellness Assessment
           </h1>
-          <p className="text-muted-foreground">AI-Powered Music Therapy Assessment</p>
+          <p className="text-muted-foreground font-light">
+            Answer a few questions to receive your personalized AI-generated music therapy
+          </p>
         </div>
 
         {/* Progress */}

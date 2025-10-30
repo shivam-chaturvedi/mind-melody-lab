@@ -2,15 +2,16 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { FeatureCard } from '@/components/FeatureCard';
 import { Music, ArrowRight, Sparkles } from 'lucide-react';
+import { Scene3D } from '@/components/Scene3D';
 
 const Home = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background font-inter">
       {/* Hero Section */}
       <section className="relative overflow-hidden py-20 px-4 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 bg-gradient-radial opacity-40" />
+        <Scene3D />
         <div className="absolute top-0 left-0 w-96 h-96 bg-primary/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-secondary/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2" />
         
@@ -18,18 +19,18 @@ const Home = () => {
           <div className="text-center animate-fade-in-up">
             <div className="inline-flex items-center gap-3 mb-6 px-6 py-3 rounded-full bg-card border border-border shadow-md">
               <Sparkles className="h-5 w-5 text-primary animate-pulse-glow" />
-              <span className="text-sm font-medium bg-gradient-primary bg-clip-text text-transparent">
+              <span className="text-sm font-light tracking-wide bg-gradient-primary bg-clip-text text-transparent">
                 AI-Powered Music Therapy
               </span>
             </div>
             
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-display font-thin mb-6 leading-tight tracking-tight">
               <span className="bg-gradient-primary bg-clip-text text-transparent bg-[length:200%_auto] animate-gradient-shift">
                 Melody Matrix
               </span>
             </h1>
             
-            <p className="text-xl sm:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-xl sm:text-2xl text-muted-foreground font-light mb-8 max-w-3xl mx-auto leading-relaxed tracking-wide">
               Experience personalized AI-generated music to support your emotional well-being. 
               Reduce stress, improve mood, and enhance focus through scientifically designed soundscapes.
             </p>
@@ -60,10 +61,10 @@ const Home = () => {
       <section className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16 animate-fade-in">
-            <h2 className="text-3xl sm:text-4xl font-bold mb-4 text-foreground">
+            <h2 className="text-3xl sm:text-4xl font-display font-light mb-4 text-foreground tracking-tight">
               How Melody Matrix Can Help You
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">
               Our AI analyzes your needs and creates unique musical experiences tailored to your emotional state
             </p>
           </div>

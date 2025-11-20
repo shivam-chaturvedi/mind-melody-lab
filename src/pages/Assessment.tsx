@@ -12,11 +12,14 @@ import { AudioPlayer } from '@/components/AudioPlayer';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, ArrowRight, Loader2, Home, RefreshCw } from 'lucide-react';
 import { generateMusic } from '@/services/beatoven';
+import { searchYouTube, type YouTubeVideo } from '@/services/youtube';
 import { buildTherapeuticPrompt } from '@/lib/promptBuilder';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
 import { FloatingParticles } from '@/components/FloatingParticles';
 import { MusicVisualizer3D } from '@/components/MusicVisualizer3D';
+
+type Recommendation = YouTubeVideo;
 
 const issues = [
   { 
@@ -128,13 +131,17 @@ const Assessment = () => {
     issueTitle: '',
     instrumentLabel: '',
   });
+  const [isFetchingRecommendations, setIsFetchingRecommendations] = useState(false);
+  const [recommendationDetails, setRecommendationDetails] = useState<Recommendation[]>([]);
+  const [recommendationQuery, setRecommendationQuery] = useState('');
+  const [recommendationPrompt, setRecommendationPrompt] = useState('');
   const activeQuestions =
     (selectedIssue ? questionBank[selectedIssue] : null) ?? questionBank.anxiety;
 
-  const handleGenerateMusic = async () => {
+  const buildAndStorePrompt = () => {
     if (!selectedIssue || !selectedInstrument) {
       toast.error('Please complete all selections');
-      return;
+      return null;
     }
 
     const { prompt, promptSummary, issueTitle, instrumentLabel } = buildTherapeuticPrompt({
@@ -148,7 +155,16 @@ const Assessment = () => {
     setPromptPreview(prompt);
     setPromptSummary(promptSummary);
     setPromptMeta({ issueTitle, instrumentLabel });
+    setRecommendationDetails([]);
+    setRecommendationQuery('');
+    setRecommendationPrompt(prompt);
 
+    return prompt;
+  };
+
+  const handleGenerateMusic = async () => {
+    const prompt = buildAndStorePrompt();
+    if (!prompt) return;
     setIsGenerating(true);
     setGenerationStatus('Initializing music generation...');
     setGenerationProgress(0);
@@ -162,13 +178,15 @@ const Assessment = () => {
         },
         (status, progress) => {
           setGenerationStatus(status);
-          setGenerationProgress(progress);
-        }
+      setGenerationProgress(progress);
+    }
       );
 
-      setGeneratedTrackUrl(audioUrl);
-      nextStep();
-      
+      if (audioUrl) {
+        setGeneratedTrackUrl(audioUrl);
+        nextStep();
+      }
+
       // Celebrate!
       confetti({
         particleCount: 150,
@@ -186,12 +204,74 @@ const Assessment = () => {
     }
   };
 
+  const handleGetRecommendations = async () => {
+    const prompt = buildAndStorePrompt();
+    if (!prompt) return;
+
+    setIsFetchingRecommendations(true);
+    try {
+      const { videos, searchQuery } = await searchYouTube(prompt, 2);
+      if (!videos.length) {
+        toast.error('No YouTube videos found. Please try again.');
+        return;
+      }
+
+      setRecommendationDetails(videos);
+      setRecommendationQuery(searchQuery);
+      setRecommendationPrompt(prompt);
+      toast.success('YouTube recommendations ready!');
+    } catch (error) {
+      console.error('Recommendation error:', error);
+      toast.error('Failed to fetch music recommendations.');
+    } finally {
+      setIsFetchingRecommendations(false);
+    }
+  };
+
+  const handleLoadMoreRecommendations = async () => {
+    if (!recommendationPrompt) {
+      toast.error('Please generate recommendations first.');
+      return;
+    }
+    setIsFetchingRecommendations(true);
+    try {
+      const nextCount = Math.min(recommendationDetails.length + 2, 10);
+      const { videos, searchQuery } = await searchYouTube(recommendationPrompt, nextCount);
+
+      if (!videos.length) {
+        toast.error('No additional videos found.');
+        return;
+      }
+
+      const currentLinks = new Set(recommendationDetails.map((video) => video.link));
+      const merged = [...recommendationDetails];
+      videos.forEach((video) => {
+        if (!currentLinks.has(video.link)) merged.push(video);
+      });
+
+      if (merged.length === recommendationDetails.length) {
+        toast.info('No more unique videos found.');
+      } else {
+        setRecommendationDetails(merged.slice(0, nextCount));
+        setRecommendationQuery(searchQuery);
+      }
+    } catch (error) {
+      console.error('Load more recommendation error:', error);
+      toast.error('Failed to load more videos.');
+    } finally {
+      setIsFetchingRecommendations(false);
+    }
+  };
+
   const handleReset = () => {
     reset();
     setCurrentStep(1);
     setPromptPreview('');
     setPromptSummary([]);
     setPromptMeta({ issueTitle: '', instrumentLabel: '' });
+    setRecommendationDetails([]);
+    setRecommendationQuery('');
+    setRecommendationPrompt('');
     toast.info('Assessment reset. Start fresh!');
   };
 
@@ -395,24 +475,45 @@ const Assessment = () => {
                 <ArrowLeft className="h-5 w-5" />
                 Back
               </Button>
-              <Button
-                size="lg"
-                onClick={handleGenerateMusic}
-                disabled={!selectedInstrument || isGenerating}
-                className="w-full sm:w-auto gap-2 bg-gradient-primary hover:opacity-90 transition-opacity px-8"
-              >
-                {isGenerating ? (
-                  <>
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    Generating... {generationProgress}%
-                  </>
-                ) : (
-                  <>
-                    Generate My Music
-                    <ArrowRight className="h-5 w-5" />
-                  </>
-                )}
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto justify-end">
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  onClick={handleGetRecommendations}
+                  disabled={!selectedInstrument || isFetchingRecommendations || isGenerating}
+                  className="w-full sm:w-auto gap-2 bg-secondary/30 hover:bg-secondary/50 text-foreground"
+                >
+                  {isFetchingRecommendations ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Fetching recommendations...
+                    </>
+                  ) : (
+                    <>
+                      Get Music Recommendations
+                      <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+                <Button
+                  size="lg"
+                  onClick={handleGenerateMusic}
+                  disabled={!selectedInstrument || isGenerating}
+                  className="w-full sm:w-auto gap-2 bg-gradient-primary hover:opacity-90 transition-opacity px-8"
+                >
+                  {isGenerating ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Generating... {generationProgress}%
+                    </>
+                  ) : (
+                    <>
+                      Generate My Music
+                      <ArrowRight className="h-5 w-5" />
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
 
             {/* Generation Status */}
@@ -436,6 +537,87 @@ const Assessment = () => {
                     <div className="mt-6 text-left bg-background/70 border border-primary/20 rounded-xl p-4 shadow-inner">
                       <p className="text-xs font-semibold uppercase tracking-wide text-primary mb-2">
                         Session Blueprint
+                      </p>
+                      <p className="text-sm text-foreground/80 font-light leading-relaxed">
+                        {promptPreview}
+                      </p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
+
+            {recommendationDetails.length > 0 && (
+              <Card className="mt-6 border-secondary/40">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                    <div>
+                      <h3 className="text-xl font-display font-light text-foreground">
+                        Top matching YouTube tracks
+                      </h3>
+                      <p className="text-sm text-muted-foreground font-light">
+                        Pulled directly from YouTube search using your therapeutic brief.
+                      </p>
+                      {recommendationQuery && (
+                        <p className="text-xs text-foreground/80 mt-1">
+                          Search: <span className="font-medium">{recommendationQuery}</span>
+                        </p>
+                      )}
+                    </div>
+                    {recommendationDetails.length > 0 && recommendationDetails.length < 10 && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleLoadMoreRecommendations}
+                        disabled={isFetchingRecommendations}
+                        className="self-start sm:self-auto"
+                      >
+                        {isFetchingRecommendations ? 'Loading...' : 'Show 2 more'}
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {recommendationDetails.map((rec, index) => (
+                      <a
+                        key={rec.link}
+                        href={rec.link}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group flex gap-3 rounded-lg border border-secondary/30 bg-secondary/5 hover:bg-secondary/10 transition-colors overflow-hidden"
+                      >
+                        {rec.thumbnail ? (
+                          <img
+                            src={rec.thumbnail}
+                            alt={rec.title}
+                            className="h-24 w-32 object-cover flex-shrink-0 transition-transform duration-300 group-hover:scale-105"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="h-24 w-32 bg-muted flex items-center justify-center text-muted-foreground text-xs">
+                            No thumbnail
+                          </div>
+                        )}
+                        <div className="flex flex-col justify-between py-3 pr-3 flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium text-foreground line-clamp-2">
+                              {index + 1}. {rec.title}
+                            </p>
+                          </div>
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span className="uppercase tracking-wide">YouTube</span>
+                            <span className="inline-flex items-center gap-1 text-primary font-medium">
+                              ▶ Play
+                            </span>
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                  {promptPreview && (
+                    <div className="rounded-lg border border-secondary/30 bg-secondary/5 p-4">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-secondary mb-2">
+                        Session Blueprint used for recommendations
                       </p>
                       <p className="text-sm text-foreground/80 font-light leading-relaxed">
                         {promptPreview}

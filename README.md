@@ -33,3 +33,7 @@ Any static hosting provider that supports a Vite build will work (Netlify, Verce
 - Vite
 - Tailwind CSS
 - shadcn/ui component primitives
+
+## Music Generation
+
+Melody Matrix composes audio tracks through Beatoven.ai's Track Composition API. The logic lives in `src/services/beatoven.ts` and [docs/beatoven.md](docs/beatoven.md) outlines the REST flow, polling strategy, and how prompts progress from queued → running → composed. Set `VITE_BEATOVEN_API_TOKEN` in your `.env` so the client can authenticate with Beatoven.

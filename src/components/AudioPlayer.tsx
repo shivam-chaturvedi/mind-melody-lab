@@ -58,7 +58,7 @@ export const AudioPlayer = ({ audioUrl }: AudioPlayerProps) => {
   const handleDownload = () => {
     const link = document.createElement('a');
     link.href = audioUrl;
-    link.download = 'melody-matrix-track.mp3';
+    link.download = 'melody-matrix-track.wav';
     link.click();
   };
 

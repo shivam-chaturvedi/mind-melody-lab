@@ -63,22 +63,11 @@ src/
 - Team profiles
 - Contact information
 
-## 🔌 API Integration
+## 🔌 Music generation via Beatoven
 
-Currently using **mock implementation** for offline development.
+Melody Matrix composes therapeutic music using Beatoven.ai's Track Composition API. The controller in `src/services/beatoven.ts` POSTs a prompt, polls the returned task_id, and returns the `meta.track_url` once Beatoven transitions from `composing` → `running` → `composed`. For the full request/response details, see [docs/beatoven.md](docs/beatoven.md).
 
-### To Connect Real Beatoven API:
-
-1. Add environment variables:
-```env
-VITE_BEATOVEN_API_KEY=your_api_key
-VITE_BEATOVEN_API_URL=https://api.beatoven.ai
-```
-
-2. Update `src/services/beatoven.ts`:
-   - Replace mock functions with real API calls
-   - Follow the compose → poll → download workflow
-   - See code comments for detailed implementation notes
+Set `VITE_BEATOVEN_API_TOKEN` in your `.env` so the app can add the required `Authorization: Bearer <token>` header to every request. Keep the token secret and avoid committing it to source control.
 
 ## 🎯 State Management
 

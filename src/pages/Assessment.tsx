@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAssessmentStore, Issue, Instrument } from '@/store/assessmentStore';
 import { Button } from '@/components/ui/button';
@@ -121,6 +121,14 @@ const Assessment = () => {
     prevStep,
     reset,
   } = useAssessmentStore();
+
+  useEffect(() => {
+    return () => {
+      if (generatedTrackUrl?.startsWith('blob:')) {
+        URL.revokeObjectURL(generatedTrackUrl);
+      }
+    };
+  }, [generatedTrackUrl]);
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStatus, setGenerationStatus] = useState('');

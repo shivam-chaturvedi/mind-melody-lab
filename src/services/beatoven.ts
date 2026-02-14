@@ -1,211 +1,320 @@
-/**
- * Beatoven API Service
- *
- * Mirrors the Streamlit backend logic in generate1.py so the React app can
- * trigger real compositions via the Beatoven public API.
- */
+import { GoogleGenAI, MusicGenerationMode } from '@google/genai';
+import type {
+  LiveMusicCallbacks,
+  LiveMusicFilteredPrompt,
+  LiveMusicGenerationConfig,
+  LiveMusicServerMessage,
+  LiveMusicSession,
+  WeightedPrompt,
+} from '@google/genai';
+
+type ProgressCallback = (status: string, progress: number) => void;
 
 export interface ComposeRequest {
   prompt: string;
-  instrument: string;
-  tempo: number;
-  format?: 'wav' | 'mp3' | 'aac';
-  looping?: boolean;
+  instrument?: string;
+  tempo?: number;
 }
 
-interface BeatovenComposeResponse {
-  status: string;
-  task_id: string;
-  track_id?: string;
-  version?: number;
+export interface GenerateMusicOptions {
+  durationSeconds?: number;
+  bpm?: number;
+  density?: number;
+  brightness?: number;
+  guidance?: number;
+  temperature?: number;
+  scale?: LiveMusicGenerationConfig['scale'];
+  musicGenerationMode?: MusicGenerationMode;
 }
 
-interface BeatovenTaskMeta {
-  track_url?: string;
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
+if (!GEMINI_API_KEY) {
+  throw new Error('Gemini API key missing. Set VITE_GEMINI_API_KEY in your environment.');
 }
 
-interface BeatovenTaskResponse {
-  id: string;
-  status: string;
-  meta?: BeatovenTaskMeta;
-}
+const LYRIA_MODEL = 'models/lyria-realtime-exp';
+const SAMPLE_RATE = 48000;
+const CHANNELS = 2;
+const BITS_PER_SAMPLE = 16;
+const DEFAULT_DURATION_SECONDS = 10;
+const MIN_DURATION_SECONDS = 8;
+const MAX_DURATION_SECONDS = 10;
 
-export interface TaskStatus {
-  taskId: string;
-  status: 'queued' | 'composing' | 'completed' | 'succeeded' | 'failed';
-  audioUrl?: string;
-}
+const aiClient = new GoogleGenAI({ apiKey: GEMINI_API_KEY, apiVersion: 'v1alpha' });
 
-const API_BASE_URL =
-  (import.meta.env.VITE_BEATOVEN_API_URL as string | undefined) ??
-  'https://public-api.beatoven.ai';
+const clamp = (value: number, min: number, max: number) => Math.min(Math.max(value, min), max);
 
-const normalizeBaseUrl = (url: string) => url.replace(/\/$/, '');
-const API_V1_BASE = `${normalizeBaseUrl(API_BASE_URL)}/api/v1`;
+const durationBetween = (input?: number) =>
+  clamp(input ?? DEFAULT_DURATION_SECONDS, MIN_DURATION_SECONDS, MAX_DURATION_SECONDS);
 
-const BACKEND_API_HEADER_KEY = import.meta.env.VITE_BEATOVEN_API_KEY;
-
-const authHeaders = () => {
-  if (!BACKEND_API_HEADER_KEY) {
-    throw new Error('Beatoven API key is missing. Set VITE_BEATOVEN_API_KEY in your environment.');
+const decodeBase64Chunk = (chunk: string): Uint8Array => {
+  const decoder = typeof atob === 'function' ? atob : undefined;
+  if (!decoder) {
+    throw new Error('Base64 decoding is not available in this environment.');
   }
 
-  return {
-    Authorization: `Bearer ${BACKEND_API_HEADER_KEY}`,
-    'Content-Type': 'application/json',
-  };
+  const binary = decoder(chunk);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+
+  return bytes;
 };
 
-export const composeTrack = async (request: ComposeRequest): Promise<string> => {
-  const payload: Record<string, unknown> = {
-    prompt: {
-      text: request.prompt,
+const buildWavHeader = (
+  dataLength: number,
+  sampleRate: number,
+  numChannels: number,
+  bitsPerSample: number
+): ArrayBuffer => {
+  const header = new ArrayBuffer(44);
+  const view = new DataView(header);
+
+  const writeString = (offset: number, value: string) => {
+    for (let i = 0; i < value.length; i += 1) {
+      view.setUint8(offset + i, value.charCodeAt(i));
+    }
+  };
+
+  const byteRate = (sampleRate * numChannels * bitsPerSample) / 8;
+  const blockAlign = (numChannels * bitsPerSample) / 8;
+
+  writeString(0, 'RIFF');
+  view.setUint32(4, 36 + dataLength, true);
+  writeString(8, 'WAVE');
+  writeString(12, 'fmt ');
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM format
+  view.setUint16(22, numChannels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, byteRate, true);
+  view.setUint16(32, blockAlign, true);
+  view.setUint16(34, bitsPerSample, true);
+  writeString(36, 'data');
+  view.setUint32(40, dataLength, true);
+
+  return header;
+};
+
+const combineChunks = (chunks: Uint8Array[]): Uint8Array => {
+  const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
+  const combined = new Uint8Array(totalLength);
+  let offset = 0;
+
+  for (const chunk of chunks) {
+    combined.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return combined;
+};
+
+const createMusicConfig = (
+  request: ComposeRequest,
+  options?: GenerateMusicOptions
+): LiveMusicGenerationConfig => {
+  const config: LiveMusicGenerationConfig = {};
+
+  const bpm = options?.bpm ?? request.tempo;
+  if (bpm) {
+    config.bpm = clamp(Math.round(bpm), 60, 200);
+  }
+
+  if (options?.density !== undefined) {
+    config.density = clamp(options.density, 0, 1);
+  }
+
+  if (options?.brightness !== undefined) {
+    config.brightness = clamp(options.brightness, 0, 1);
+  }
+
+  if (options?.guidance !== undefined) {
+    config.guidance = clamp(options.guidance, 0, 6);
+  }
+
+  if (options?.temperature !== undefined) {
+    config.temperature = clamp(options.temperature, 0, 3);
+  }
+
+  if (options?.scale) {
+    config.scale = options.scale;
+  }
+
+  config.musicGenerationMode =
+    options?.musicGenerationMode ?? MusicGenerationMode.QUALITY;
+
+  return config;
+};
+
+const WEBSOCKET_OPEN = 1;
+const WEBSOCKET_CLOSED = 3;
+
+const isSessionOpen = (session?: LiveMusicSession): boolean => {
+  const ws = session?.conn;
+  return Boolean(ws && ws.readyState === WEBSOCKET_OPEN);
+};
+
+const isSessionClosed = (session?: LiveMusicSession): boolean => {
+  const ws = session?.conn;
+  if (!ws) return true;
+  return ws.readyState === WEBSOCKET_CLOSED;
+};
+
+const safeStopSession = (session?: LiveMusicSession) => {
+  if (!session || isSessionClosed(session)) {
+    return;
+  }
+
+  if (isSessionOpen(session)) {
+    try {
+      session.stop();
+    } catch (error) {
+      console.warn('Error sending stop to Lyria session:', error);
+    }
+  }
+
+  const ws = session.conn;
+  if (ws && ws.readyState !== ws.CLOSED) {
+    try {
+      session.close();
+    } catch (error) {
+      console.warn('Error closing Lyria session:', error);
+    }
+  }
+};
+
+const sanitizePrompt = (prompt: string, instrument?: string): string => {
+  const disallowed = /^(make|generate|music)$/i;
+  const words = prompt
+    .split(/\s+/)
+    .map((word) => word.trim())
+    .filter((word) => !!word && !disallowed.test(word));
+
+  if (instrument) {
+    const instrumentWords = instrument
+      .split(/\s+/)
+      .map((word) => word.trim())
+      .filter(Boolean);
+
+    for (const instWord of instrumentWords) {
+      if (!words.includes(instWord)) {
+        words.push(instWord);
+      }
+    }
+  }
+
+  return words.join(' ').trim();
+};
+
+export const generateMusic = async (
+  request: ComposeRequest,
+  onProgress?: ProgressCallback,
+  options?: GenerateMusicOptions
+): Promise<string> => {
+  const prompt = request.prompt.trim();
+  if (!prompt) {
+    throw new Error('Prompt is required to generate music.');
+  }
+
+  onProgress?.('Connecting to Lyria...', 5);
+
+  const durationMs = 10000;
+  const audioChunks: Uint8Array[] = [];
+
+  let session: LiveMusicSession | undefined;
+  let firstChunkReceived = false;
+  let stopTimer: number | undefined;
+  let hardTimeout: number | undefined;
+
+  let resolveCompletion!: () => void;
+  let rejectCompletion!: (error: Error) => void;
+
+  const completionPromise = new Promise<void>((resolve, reject) => {
+    resolveCompletion = resolve;
+    rejectCompletion = reject;
+  });
+
+  const callbacks: LiveMusicCallbacks = {
+    onmessage: (message: LiveMusicServerMessage) => {
+      const chunks = message.serverContent?.audioChunks;
+      if (!chunks?.length) return;
+
+      if (!firstChunkReceived) {
+        firstChunkReceived = true;
+
+        onProgress?.('Streaming audio...', 30);
+
+        stopTimer = window.setTimeout(() => {
+          session?.stop();
+          session?.close();
+        }, durationMs);
+
+        if (hardTimeout) clearTimeout(hardTimeout);
+      }
+
+      for (const chunk of chunks) {
+        if (!chunk.data) continue;
+        audioChunks.push(decodeBase64Chunk(chunk.data));
+      }
+    },
+
+    onerror: (event) => {
+      const error =
+        event?.error instanceof Error
+          ? event.error
+          : new Error(event?.message ?? 'Streaming error.');
+      rejectCompletion(error);
+    },
+
+    onclose: () => {
+      resolveCompletion();
     },
   };
 
-  payload.format = request.format ?? 'wav';
-  if (typeof request.looping === 'boolean') {
-    payload.looping = request.looping;
-  }
-
-  const response = await fetch(`${API_V1_BASE}/tracks/compose`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(payload),
+  session = await aiClient.live.music.connect({
+    model: LYRIA_MODEL,
+    callbacks,
   });
 
-  if (!response.ok) {
-    const errorBody = await safeJson(response);
-    throw new Error(
-      `Beatoven compose failed (${response.status}): ${JSON.stringify(errorBody ?? response.statusText)}`
-    );
-  }
-
-  const data = (await response.json()) as BeatovenComposeResponse;
-
-  if (!data.task_id) {
-    throw new Error('Beatoven compose response missing task_id');
-  }
-
-  return data.task_id;
-};
-
-export const getTrackStatus = async (taskId: string): Promise<TaskStatus> => {
-  const response = await fetch(`${API_V1_BASE}/tasks/${taskId}`, {
-    headers: authHeaders(),
+  await session.setWeightedPrompts({
+    weightedPrompts: [{ text: prompt, weight: 1 }],
   });
 
-  if (!response.ok) {
-    const errorBody = await safeJson(response);
-    throw new Error(
-      `Beatoven status failed (${response.status}): ${JSON.stringify(errorBody ?? response.statusText)}`
-    );
+  await session.setMusicGenerationConfig({
+    musicGenerationConfig: createMusicConfig(request, options),
+  });
+
+  session.play();
+
+  hardTimeout = window.setTimeout(() => {
+    rejectCompletion(new Error('Lyria timed out.'));
+    session?.stop();
+    session?.close();
+  }, 20000);
+
+  await completionPromise;
+
+  if (stopTimer) clearTimeout(stopTimer);
+  if (hardTimeout) clearTimeout(hardTimeout);
+
+  if (!audioChunks.length) {
+    throw new Error('No audio received.');
   }
 
-  const data = (await response.json()) as BeatovenTaskResponse;
+  const combinedAudio = combineChunks(audioChunks);
+  const header = buildWavHeader(
+    combinedAudio.length,
+    SAMPLE_RATE,
+    CHANNELS,
+    BITS_PER_SAMPLE
+  );
 
-  const audioUrl = extractAudioUrl(data.meta);
-  const rawStatus = (data.status ?? 'queued').toLowerCase();
-  const normalizedStatus = normalizeStatus(rawStatus);
+  const wavBlob = new Blob([header, combinedAudio], {
+    type: 'audio/wav',
+  });
 
-  return {
-    taskId: data.id ?? taskId,
-    status: normalizedStatus,
-    audioUrl,
-  };
-};
+  onProgress?.('Track ready', 100);
 
-/**
- * Complete workflow to generate music (compose -> poll -> download)
- */
-export const generateMusic = async (
-  request: ComposeRequest,
-  onProgress?: (status: string, progress: number) => void
-): Promise<string> => {
-  try {
-    onProgress?.('🎼 Starting composition...', 5);
-    const taskId = await composeTrack(request);
-
-    let interval = 10000;
-    let attempts = 0;
-    const maxAttempts = 45;
-
-    while (attempts < maxAttempts) {
-      attempts += 1;
-
-      const status = await getTrackStatus(taskId);
-      const progressHint = Math.min(90, 10 + attempts * 2.5);
-
-      if (status.status === 'queued') {
-        onProgress?.('🎼 Preparing orchestration and sound palette...', progressHint);
-      } else {
-        onProgress?.('🎵 Composing your personalized track...', progressHint);
-      }
-
-      if (status.status === 'failed') {
-        throw new Error('Beatoven reported the composition failed');
-      }
-
-      if ((status.status === 'completed' || status.status === 'succeeded') && status.audioUrl) {
-        onProgress?.('🎧 Music ready!', 100);
-        return status.audioUrl;
-      }
-
-      // backoff similar to Python watch_task_status
-      await wait(interval);
-      interval = Math.max(3000, interval - 1500);
-    }
-
-    throw new Error('Music generation timed out before completion');
-  } catch (error) {
-    console.error('[Beatoven] Error generating music:', error);
-    throw error;
-  }
-};
-
-const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const safeJson = async (response: Response) => {
-  try {
-    return await response.json();
-  } catch {
-    return null;
-  }
-};
-
-const extractAudioUrl = (meta?: BeatovenTaskMeta): string | undefined => {
-  if (!meta) return undefined;
-  if (meta.track_url) return meta.track_url;
-
-  // Some responses may return assets array containing download URLs
-  const assets = (meta as any).assets ?? (meta as any).tracks ?? [];
-  if (Array.isArray(assets)) {
-    const match = assets.find((item) => typeof item?.url === 'string' || typeof item?.download_url === 'string');
-    return match?.url ?? match?.download_url;
-  }
-
-  return undefined;
-};
-
-const normalizeStatus = (status: string): TaskStatus['status'] => {
-  switch (status) {
-    case 'composed':
-    case 'completed':
-      return 'completed';
-    case 'succeeded':
-      return 'succeeded';
-    case 'running':
-    case 'processing':
-      return 'composing';
-    case 'queued':
-    case 'pending':
-    case 'waiting':
-      return 'queued';
-    case 'composing':
-      return 'composing';
-    case 'failed':
-      return 'failed';
-    default:
-      return 'queued';
-  }
+  return URL.createObjectURL(wavBlob);
 };
